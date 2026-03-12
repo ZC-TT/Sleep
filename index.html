@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌙 晚安打卡</title>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+  background: linear-gradient(to bottom, #fdf2ff, #e6f7ff);
+  min-height: 100vh;
+  text-align: center;
+  padding: 50px 20px;
+  color: #444;
+}
+
+.title {
+  font-size: 28px;
+  margin-bottom: 10px;
+  color: #7a9cd6;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: #999;
+  margin-bottom: 30px;
+}
+
+.streak-box {
+  background: white;
+  padding: 15px 25px;
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(122, 156, 214, 0.15);
+  display: inline-block;
+  margin-bottom: 30px;
+}
+
+.streak {
+  font-size: 16px;
+  color: #7a9cd6;
+  font-weight: bold;
+}
+
+.sleep-btn {
+  background: linear-gradient(to right, #a8c0ff, #c4e0ff);
+  color: white;
+  border: none;
+  padding: 20px 45px;
+  border-radius: 50px;
+  font-size: 18px;
+  box-shadow: 0 6px 15px rgba(168, 192, 255, 0.3);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sleep-btn:active {
+  transform: scale(0.96);
+}
+
+.msg {
+  margin-top: 15px;
+  font-size: 15px;
+  color: #7a9cd6;
+}
+
+.stat {
+  margin: 25px 0;
+  font-size: 14px;
+  color: #888;
+}
+
+.record-title {
+  font-size: 16px;
+  color: #7a9cd6;
+  margin: 25px 0 10px;
+}
+
+.record-list {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.record-item {
+  background: white;
+  padding: 12px 15px;
+  border-radius: 15px;
+  margin-bottom: 8px;
+  font-size: 14px;
+  text-align: left;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  color: #666;
+}
+</style>
+</head>
+
+<body>
+
+<h1 class="title">🌙 晚安打卡</h1>
+<p class="subtitle">今天也要乖乖早睡哦</p >
+
+<div class="streak-box">
+  <div class="streak" id="streakTxt">连续早睡：0 天 💤</div>
+</div>
+
+<button class="sleep-btn" onclick="sleepClockIn()">我要睡觉啦～</button>
+<div class="msg" id="msg"></div>
+
+<div class="stat" id="stat"></div>
+
+<h3 class="record-title">📜 最近打卡记录</h3>
+<div class="record-list" id="recordList"></div>
+
+<script>
+// 读取记录
+function getRecords() {
+  const data = localStorage.getItem("sleepRecords");
+  return data ? JSON.parse(data) : [];
+}
+
+// 保存记录
+function saveRecord(timeObj) {
+  const list = getRecords();
+  list.push(timeObj);
+  localStorage.setItem("sleepRecords", JSON.stringify(list));
+}
+
+// 计算连续天数
+function getStreak() {
+  const list = getRecords();
+  if (list.length === 0) return 0;
+  return list.length;
+}
+
+// 统计平均睡觉时间
+function getAvgTime() {
+  const list = getRecords();
+  if (list.length === 0) return "还没打卡哦";
+  let total = 0;
+  list.forEach(item => {
+    const h = new Date(item.time).getHours();
+    const m = new Date(item.time).getMinutes();
+    total += h * 60 + m;
+  });
+  const avg = Math.round(total / list.length);
+  const h = Math.floor(avg / 60);
+  const m = avg % 60;
+  return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`;
+}
+
+// 打卡
+function sleepClockIn() {
+  const now = new Date();
+  const dateStr = now.toLocaleDateString();
+  const timeStr = now.toLocaleTimeString();
+  saveRecord({
+    date: dateStr,
+    time: now.getTime(),
+    showTime: `${dateStr} ${timeStr}`
+  });
+  document.getElementById("msg").innerText = "✅ 打卡成功！晚安好梦～";
+  refreshUI();
+}
+
+// 刷新界面
+function refreshUI() {
+  const streak = getStreak();
+  document.getElementById("streakTxt").innerText = `连续早睡：${streak} 天 💤`;
+
+  const avg = getAvgTime();
+  document.getElementById("stat").innerText = `平均睡觉时间：${avg}`;
+
+  const list = getRecords();
+  let html = "";
+  const showList = list.slice(-10).reverse();
+  showList.forEach(item => {
+    html += `<div class="record-item">${item.showTime}</div>`;
+  });
+  document.getElementById("recordList").innerHTML = html;
+}
+
+refreshUI();
+</script>
+</body>
+</html>
